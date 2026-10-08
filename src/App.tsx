@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DropZone from "./components/DropZone";
+import type { LoadingStage } from "./components/DropZone";
 import FilePanel from "./components/FilePanel";
 import FilterBar from "./components/FilterBar";
 import LayerBar from "./components/LayerBar";
@@ -129,8 +130,9 @@ export default function App() {
   const [centrality, setCentrality] = useState<Map<string, number>>(
     () => new Map(),
   );
-  const [busy, setBusy] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<LoadingStage>("idle");
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const commit = useCallback((next: FilterState, clearPins = false) => {
     setFilter(next);
@@ -152,10 +154,26 @@ export default function App() {
 
   const handleFiles = useCallback(
     async (list: File[], knownSkipped: string[] = []) => {
-      setBusy(true);
+      // Fresh controller per upload so a stale cancel can't kill the next run.
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setLoadingStage("reading");
       setError(null);
       try {
-        const result = await processFileList(list, knownSkipped);
+        // Yield to the browser so it can paint the "reading" state before we block on disk I/O.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        if (controller.signal.aborted) return;
+
+        // Reading stage: pull file contents off disk and inflate zips.
+        const result = await processFileList(list, knownSkipped, controller.signal);
+        if (controller.signal.aborted) return;
+
+        // Processing stage: classify, score and assemble the crush.
+        setLoadingStage("processing");
+        // Yield again so the "processing" state paints before the heavy crunch.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        if (controller.signal.aborted) return;
+
         const classified = classifyAll(
           result.files,
           loadLayerOverrides(result.rootName),
@@ -178,16 +196,26 @@ export default function App() {
           setCentrality(centralityScores(classified));
         }
       } catch (e) {
-        console.error(e);
-        setError(
-          "Something went wrong while reading the files. Please try again.",
-        );
+        if (e instanceof Error && (e.name === "AbortError" || e.message === "Cancelled")) {
+          console.log("User cancelled the upload.");
+        } else {
+          console.error(e);
+          setError(
+            "Something went wrong while reading the files. Please try again.",
+          );
+        }
       } finally {
-        setBusy(false);
+        setLoadingStage("idle");
+        abortControllerRef.current = null;
       }
     },
     [filter.layers],
   );
+
+  const cancelProcessing = useCallback(() => {
+    abortControllerRef.current?.abort();
+    setLoadingStage("idle");
+  }, []);
 
   // Checkbox semantics: normal files flip included; junk flips between placeholder and full content.
   const toggle = useCallback((path: string) => {
@@ -467,7 +495,11 @@ export default function App() {
             </section>
 
             <section className="mx-auto mt-12 max-w-3xl">
-              <DropZone onFiles={handleFiles} busy={busy} />
+              <DropZone
+                onFiles={handleFiles}
+                loadingStage={loadingStage}
+                onCancel={cancelProcessing}
+              />
               {error && (
                 <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">
                   {error}

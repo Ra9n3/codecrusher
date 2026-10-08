@@ -136,14 +136,33 @@ function stripCommonRoot(paths: string[]): { strip: number; rootName: string } {
   return allShare ? { strip: root.length + 1, rootName: root } : { strip: 0, rootName: "repository" };
 }
 
+/** Thrown when the caller aborts processing; matches the DOM AbortError shape. */
+function abortError(): Error {
+  const err = new Error("Cancelled");
+  err.name = "AbortError";
+  return err;
+}
+
+/** Yield to the event loop every N files so the browser can paint and handle clicks mid-read. */
+const YIELD_EVERY = 100;
+function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 /**
  * @param fileList files from a folder picker / drag-drop traversal (or a single .zip)
  * @param knownSkippedDirs directories the traversal already refused to enter (relative to the dropped root)
+ * @param signal aborts the run between files so the browser stops crunching immediately
  */
-export async function processFileList(fileList: File[], knownSkippedDirs: string[] = []): Promise<ProcessResult> {
+export async function processFileList(
+  fileList: File[],
+  knownSkippedDirs: string[] = [],
+  signal?: AbortSignal,
+): Promise<ProcessResult> {
+  if (signal?.aborted) throw abortError();
   // Zip file dropped alone?
   if (fileList.length === 1 && /\.zip$/i.test(fileList[0].name)) {
-    return processZip(fileList[0]);
+    return processZip(fileList[0], signal);
   }
 
   const entries = fileList.map((f) => ({
@@ -158,7 +177,10 @@ export async function processFileList(fileList: File[], knownSkippedDirs: string
     if (rel && rel !== rootName) skipped.add(rel);
   }
   const results: RepoFile[] = [];
+  let i = 0;
   for (const e of entries) {
+    if (signal?.aborted) throw abortError();
+    if (i++ % YIELD_EVERY === 0) await yieldToBrowser();
     const path = strip ? e.raw.slice(strip) : e.raw;
     if (!path) continue;
     if (recordNeverScan(path, skipped)) continue; // never read node_modules & co.
@@ -168,7 +190,8 @@ export async function processFileList(fileList: File[], knownSkippedDirs: string
   return { files: results, rootName, skippedDirs: [...skipped].sort() };
 }
 
-export async function processZip(zipFile: File): Promise<ProcessResult> {
+export async function processZip(zipFile: File, signal?: AbortSignal): Promise<ProcessResult> {
+  if (signal?.aborted) throw abortError();
   const zip = await JSZip.loadAsync(zipFile);
   const entries: { path: string; obj: JSZip.JSZipObject }[] = [];
   zip.forEach((relPath, obj) => {
@@ -178,7 +201,10 @@ export async function processZip(zipFile: File): Promise<ProcessResult> {
   const { strip, rootName } = stripCommonRoot(entries.map((e) => e.path));
   const skipped = new Set<string>();
   const results: RepoFile[] = [];
+  let i = 0;
   for (const e of entries) {
+    if (signal?.aborted) throw abortError();
+    if (i++ % YIELD_EVERY === 0) await yieldToBrowser();
     const path = strip ? e.path.slice(strip) : e.path;
     if (!path) continue;
     // Never inflate node_modules, .git & co. — record the directory once.
