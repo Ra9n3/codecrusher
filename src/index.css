@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+  background-color: #09090b; /* zinc-950 */
+  color-scheme: dark;
+}
+
+body {
+  background-color: #09090b; /* zinc-950 */
+  min-height: 100vh;
+}
