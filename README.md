@@ -1,5 +1,6 @@
-<img width="1885" height="822" alt="codecrusher2" src="https://github.com/user-attachments/assets/358772e3-3fd7-4d15-baf4-4936621fc872" />
 <img width="1892" height="808" alt="codecrusher1" src="https://github.com/user-attachments/assets/c8a54f11-a83d-4770-9a0d-d7c0be541561" />
+<img width="1885" height="822" alt="codecrusher2" src="https://github.com/user-attachments/assets/358772e3-3fd7-4d15-baf4-4936621fc872" />
+
 # ⚡ Code Crusher
 
 > **Crush an entire repository into a single, token-budgeted, AI-ready text file.** 
