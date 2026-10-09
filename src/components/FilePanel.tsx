@@ -39,9 +39,9 @@ export default function FilePanel({ files, skippedDirs = [], evicted, onToggle, 
   const noneIncluded = files.length > 0 && files.every((f) => !f.included);
   const mixedSelection = files.length > 0 && !allIncluded && !noneIncluded;
   const selectorButton = (active: boolean) =>
-    `rounded-md border px-2 py-1 text-[11px] font-medium transition-colors duration-150 ${
+    `rounded-md border px-2 py-1 text-[11px] font-medium ${
       active
-        ? "border-amber-400/70 bg-amber-400/10 text-amber-100"
+        ? "border-amber-400/70 bg-amber-400/10 text-amber-100 transition-colors duration-150"
         : "border-zinc-800 text-zinc-400 hover:border-zinc-600"
     }`;
 
