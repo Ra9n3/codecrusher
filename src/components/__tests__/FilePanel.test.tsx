@@ -74,28 +74,37 @@ describe("FilePanel All/None mirror the selection", () => {
   const excluded = demoFiles.map((f) => ({ ...f, included: false }));
   const mixed = demoFiles.map((f, i) => (i === 0 ? { ...f, included: false } : f));
 
-  const accented = (name: string) =>
-    screen.getByRole("button", { name }).className.includes("text-amber-200");
+  const cls = (name: string) => screen.getByRole("button", { name }).className;
+  const lit = (name: string) => cls(name).includes("border-amber-400/70");
+  const idle = (name: string) =>
+    cls(name).includes("border-zinc-800") && !cls(name).includes("border-amber-400");
+  const customPill = () => screen.getByText("custom");
 
-  it("accents All and not None when every file is included", () => {
+  it("lights All with the house border and leaves None idle when every file is included", () => {
     render(<FilePanel files={demoFiles} onToggle={() => {}} onToggleAll={() => {}} />);
-    expect(accented("All")).toBe(true);
-    expect(accented("None")).toBe(false);
+    expect(lit("All")).toBe(true);
+    expect(cls("All")).toContain("bg-amber-400/10");
+    expect(cls("All")).toContain("text-amber-100");
+    expect(idle("None")).toBe(true);
     expect(screen.queryByText("custom")).toBeNull();
   });
 
-  it("accents None and not All when no file is included", () => {
+  it("lights None with the house border and leaves All idle when no file is included", () => {
     render(<FilePanel files={excluded} onToggle={() => {}} onToggleAll={() => {}} />);
-    expect(accented("None")).toBe(true);
-    expect(accented("All")).toBe(false);
+    expect(lit("None")).toBe(true);
+    expect(idle("All")).toBe(true);
     expect(screen.queryByText("custom")).toBeNull();
   });
 
-  it("accents neither button and shows a muted custom indicator when the selection is mixed", () => {
+  it("leaves both buttons idle and lights custom with the active recipe when the selection is mixed", () => {
     render(<FilePanel files={mixed} onToggle={() => {}} onToggleAll={() => {}} />);
-    expect(accented("All")).toBe(false);
-    expect(accented("None")).toBe(false);
-    expect(screen.getByText("custom")).toBeTruthy();
+    expect(idle("All")).toBe(true);
+    expect(idle("None")).toBe(true);
+    const custom = customPill();
+    expect(custom.className).toContain("border-amber-400/70");
+    expect(custom.className).toContain("bg-amber-400/10");
+    expect(custom.className).toContain("text-amber-100");
+    expect(custom.getAttribute("title")).toBe("Custom selection — some files included");
   });
 
   it("mirrors the user excluding files one by one until None lights up", () => {
@@ -117,18 +126,18 @@ describe("FilePanel All/None mirror the selection", () => {
       );
     }
     render(<Controlled initial={plain} />);
-    expect(accented("All")).toBe(true);
+    expect(lit("All")).toBe(true);
     for (const f of plain) {
       fireEvent.click(screen.getByLabelText(`Include ${f.path}`));
     }
-    expect(accented("None")).toBe(true);
+    expect(lit("None")).toBe(true);
     expect(screen.queryByText("custom")).toBeNull();
   });
 
-  it("accents neither button when the file list is empty", () => {
+  it("lights neither button and shows no custom indicator when the file list is empty", () => {
     render(<FilePanel files={[]} onToggle={() => {}} onToggleAll={() => {}} />);
-    expect(accented("All")).toBe(false);
-    expect(accented("None")).toBe(false);
+    expect(idle("All")).toBe(true);
+    expect(idle("None")).toBe(true);
     expect(screen.queryByText("custom")).toBeNull();
   });
 });
