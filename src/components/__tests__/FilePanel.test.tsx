@@ -141,3 +141,20 @@ describe("FilePanel All/None mirror the selection", () => {
     expect(screen.queryByText("custom")).toBeNull();
   });
 });
+
+describe("FilePanel scroll window and visibility", () => {
+  it("renders the file list container with a visible boundary (border and rounded corners)", () => {
+    render(<FilePanel files={demoFiles} onToggle={() => {}} onToggleAll={() => {}} />);
+    const listContainer = screen.getByTestId("file-list-container");
+    expect(listContainer).toBeTruthy();
+    const className = listContainer.className;
+    expect(className).toMatch(/border/);
+    expect(className).toMatch(/rounded/);
+  });
+
+  it("renders a bottom-fade element above the file rows to indicate scrollable content", () => {
+    render(<FilePanel files={demoFiles} onToggle={() => {}} onToggleAll={() => {}} />);
+    const fade = screen.getByTestId("file-list-bottom-fade");
+    expect(fade).toBeTruthy();
+  });
+});

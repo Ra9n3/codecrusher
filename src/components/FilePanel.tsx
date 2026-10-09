@@ -139,7 +139,14 @@ export default function FilePanel({ files, skippedDirs = [], evicted, onToggle, 
         </button>
       </div>
 
-      <div className={`min-h-0 flex-1 overflow-y-auto p-2 ${!isListExpanded ? "max-h-[350px]" : ""}`}>
+      <div
+        data-testid="file-list-container"
+        className={`relative min-h-0 flex-1 overflow-y-auto rounded-md border border-zinc-800 p-2 ${!isListExpanded ? "max-h-[350px]" : ""}`}
+      >
+        <div
+          data-testid="file-list-bottom-fade"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-zinc-900/90 to-transparent"
+        />
         {visible.map((f) => {
           const unreadable = f.content === null;
           const isJunk = f.junk !== null;
