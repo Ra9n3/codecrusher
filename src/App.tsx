@@ -44,7 +44,6 @@ import {
   processFileList,
   renderFileBlock,
 } from "./lib/processor";
-import heroCrusher from "../public/images/hero-crusher.png";
 
 /** Header + footer + per-tree-line allowance used by the budget planner (measured output is shown to the user). */
 const BASE_HEADER_TOKENS = 260;
