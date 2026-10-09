@@ -44,7 +44,6 @@ import {
   processFileList,
   renderFileBlock,
 } from "./lib/processor";
-import heroCrusher from "../public/images/hero-crusher.png";
 
 /** Header + footer + per-tree-line allowance used by the budget planner (measured output is shown to the user). */
 const BASE_HEADER_TOKENS = 260;
@@ -499,6 +498,8 @@ export default function App() {
                 onFiles={handleFiles}
                 loadingStage={loadingStage}
                 onCancel={cancelProcessing}
+                onStageChange={setLoadingStage}
+                abortRef={abortControllerRef}
               />
               {error && (
                 <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">

@@ -8,9 +8,20 @@ interface Props {
   onFiles: (files: File[], skippedDirs?: string[]) => void;
   loadingStage: LoadingStage;
   onCancel: () => void;
+  /** Lets the dropzone surface the "reading" stage while it walks a dropped folder / an open picker. */
+  onStageChange: (stage: LoadingStage) => void;
+  /** Shared controller so Cancel can abort an in-flight folder traversal too. */
+  abortRef: { current: AbortController | null };
 }
 
-async function readEntry(entry: any, path: string, out: File[], skipped: string[]): Promise<void> {
+async function readEntry(
+  entry: any,
+  path: string,
+  out: File[],
+  skipped: string[],
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) return;
   if (entry.isFile) {
     const file: File = await new Promise((res, rej) => entry.file(res, rej));
     // attach relative path
@@ -30,13 +41,20 @@ async function readEntry(entry: any, path: string, out: File[], skipped: string[
     do {
       batch = await new Promise((res, rej) => reader.readEntries(res, rej));
       for (const child of batch) {
-        await readEntry(child, path + entry.name + "/", out, skipped);
+        if (signal?.aborted) return;
+        await readEntry(child, path + entry.name + "/", out, skipped, signal);
       }
     } while (batch.length > 0);
   }
 }
 
-export default function DropZone({ onFiles, loadingStage, onCancel }: Props) {
+export default function DropZone({
+  onFiles,
+  loadingStage,
+  onCancel,
+  onStageChange,
+  abortRef,
+}: Props) {
   const [dragOver, setDragOver] = useState(false);
   const folderInput = useRef<HTMLInputElement>(null);
   const zipInput = useRef<HTMLInputElement>(null);
@@ -53,16 +71,33 @@ export default function DropZone({ onFiles, loadingStage, onCancel }: Props) {
         .filter(Boolean);
 
       if (entries.length > 0 && entries.some((en: any) => en.isDirectory)) {
+        // Mark the traversal (and let Cancel abort it) before we touch the disk.
+        const controller = new AbortController();
+        abortRef.current = controller;
+        onStageChange("reading");
         const out: File[] = [];
         const skipped: string[] = [];
         for (const entry of entries) {
-          await readEntry(entry, "", out, skipped);
+          await readEntry(entry, "", out, skipped, controller.signal);
+          if (controller.signal.aborted) break;
         }
+        if (abortRef.current === controller) abortRef.current = null;
+        if (controller.signal.aborted) return;
         if (out.length) onFiles(out, skipped);
+        else onStageChange("idle");
         return;
       }
       const files = Array.from(e.dataTransfer.files || []);
       if (files.length) onFiles(files);
+    },
+    [onFiles, isDisabled, onStageChange, abortRef]
+  );
+
+  const acceptPicked = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length && !isDisabled) onFiles(files);
+      e.target.value = "";
     },
     [onFiles, isDisabled]
   );
@@ -90,11 +125,7 @@ export default function DropZone({ onFiles, loadingStage, onCancel }: Props) {
         multiple
         disabled={isDisabled}
         className="hidden"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []);
-          if (files.length && !isDisabled) onFiles(files);
-          e.target.value = "";
-        }}
+        onChange={acceptPicked}
       />
       <input
         ref={zipInput}
@@ -102,11 +133,7 @@ export default function DropZone({ onFiles, loadingStage, onCancel }: Props) {
         accept=".zip"
         disabled={isDisabled}
         className="hidden"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []);
-          if (files.length && !isDisabled) onFiles(files);
-          e.target.value = "";
-        }}
+        onChange={acceptPicked}
       />
 
       <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg shadow-amber-500/20">
