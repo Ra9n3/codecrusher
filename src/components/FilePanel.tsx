@@ -34,6 +34,15 @@ export default function FilePanel({ files, skippedDirs = [], evicted, onToggle, 
   const collapsedCount = files.filter((f) => f.included && (f.collapsed || f.content === null)).length;
   const isListTooShort = visible.length <= 5;
 
+  // Derive the All/None mirrors from the same list the buttons act on — never from "last pressed".
+  const allIncluded = files.length > 0 && files.every((f) => f.included);
+  const noneIncluded = files.length > 0 && files.every((f) => !f.included);
+  const mixedSelection = files.length > 0 && !allIncluded && !noneIncluded;
+  const selectorButton = (active: boolean) =>
+    `rounded-md px-2 py-1 text-[11px] font-medium transition-colors duration-150 ${
+      active ? "bg-amber-400/10 text-amber-200" : "text-zinc-400 hover:bg-zinc-700/50"
+    }`;
+
   return (
     <div className="flex h-full min-h-[420px] flex-col rounded-2xl border border-zinc-800 bg-zinc-900/70">
       <div className="border-b border-zinc-800 p-4">
@@ -48,17 +57,22 @@ export default function FilePanel({ files, skippedDirs = [], evicted, onToggle, 
             <button
               type="button"
               onClick={() => onToggleAll(true)}
-              className="rounded-md px-2 py-1 text-[11px] font-medium text-amber-300 hover:bg-amber-400/10"
+              aria-pressed={allIncluded}
+              className={selectorButton(allIncluded)}
             >
               All
             </button>
             <button
               type="button"
               onClick={() => onToggleAll(false)}
-              className="rounded-md px-2 py-1 text-[11px] font-medium text-zinc-400 hover:bg-zinc-700/50"
+              aria-pressed={noneIncluded}
+              className={selectorButton(noneIncluded)}
             >
               None
             </button>
+            {mixedSelection && (
+              <span className="self-center text-[11px] text-zinc-500 transition-colors duration-150">custom</span>
+            )}
           </div>
         </div>
         <input
