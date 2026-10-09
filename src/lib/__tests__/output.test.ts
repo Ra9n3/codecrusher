@@ -70,3 +70,40 @@ describe("buildTree", () => {
     expect(tree).toBe(["repo/", "├── node_modules/  (not scanned)", "└── src/", "    ├── a.ts", "    └── b.min.js  (omitted: minified)"].join("\n"));
   });
 });
+
+describe("license placeholders", () => {
+  const gpl = [
+    "                    GNU GENERAL PUBLIC LICENSE",
+    "                       Version 3, 29 June 2007",
+    "",
+    " Copyright (C) 2007 Free Software Foundation, Inc.",
+    "",
+    "                            Preamble",
+    "",
+    "   SENTINEL_BODY_LINE_DO_NOT_SHIP",
+  ].join("\n");
+
+  it("collapses a LICENSE to a labeled one-line placeholder by default", () => {
+    const f = file("LICENSE", gpl);
+    expect(f.junk).toBe("license");
+    expect(f.junkLabel).toBe("GPL v3");
+    expect(f.collapsed).toBe(true);
+    const out = generateOutput([f], meta);
+    expect(out).toContain("FILE: LICENSE  [8 lines omitted: LICENSE (GPL v3)]");
+    expect(out).toContain("LICENSE  (omitted: GPL v3, 8 lines)");
+    expect(out).not.toContain("SENTINEL_BODY_LINE_DO_NOT_SHIP");
+  });
+
+  it("falls back to (license text) when the type can't be determined", () => {
+    const f = file("COPYING", "just some words\nand more");
+    const out = generateOutput([f], meta);
+    expect(out).toContain("omitted: COPYING (license text)]");
+  });
+
+  it("restores the full text when the license is expanded", () => {
+    const f = { ...file("LICENSE", gpl), collapsed: false };
+    const out = generateOutput([f], meta);
+    expect(out).toContain("SENTINEL_BODY_LINE_DO_NOT_SHIP");
+    expect(out).not.toContain("omitted: LICENSE");
+  });
+});

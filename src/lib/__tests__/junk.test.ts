@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   countLines,
   detectJunk,
+  detectLicenseLabel,
   dispositionOf,
+  isLicensePath,
   isNeverScanPath,
   neverScanDirOf,
+  omittedLabel,
   placeholderText,
   looksMinified,
   looksGenerated,
@@ -53,6 +56,79 @@ describe("detectJunk", () => {
     expect(detectJunk({ path: "src/App.tsx", content: "export default function App() {}" })).toBeNull();
     expect(detectJunk({ path: "package.json", content: "{}" })).toBeNull();
     expect(detectJunk({ path: "src/build/helpers.ts", content: "x" })).toBe("build-output"); // dir rule is literal on purpose
+  });
+});
+
+describe("license files", () => {
+  const gpl3 = "                    GNU GENERAL PUBLIC LICENSE\n                       Version 3, 29 June 2007\n\n Copyright (C) 2007 Free Software Foundation";
+
+  it("matches license filenames case-insensitively (basename only, anywhere in the tree)", () => {
+    const matches = [
+      "LICENSE",
+      "license",
+      "LICENSE.md",
+      "LICENSE.txt",
+      "LICENCE",
+      "LICENCE.md",
+      "COPYING",
+      "COPYING.txt",
+      "NOTICE",
+      "NOTICE.md",
+      "UNLICENSE",
+      "UNLICENCE",
+      "LICENSE-MIT",
+      "LICENSE.MIT",
+      "LICENSE_GPL",
+      "COPYING.LGPL",
+      "LICENSE-APACHE",
+      "LICENSE-BSD",
+      "packages/app/LICENSE",
+      "docs/COPYING.txt",
+    ];
+    for (const p of matches) expect(isLicensePath(p), p).toBe(true);
+  });
+
+  it("ignores source files, READMEs and directory children", () => {
+    const nonMatches = ["src/license-utils.ts", "README.md", "LICENSE/foo.ts", "src/index.ts", "license.ts", "LICENSE-README"];
+    for (const p of nonMatches) expect(isLicensePath(p), p).toBe(false);
+  });
+
+  it("collapses matched license files as junk", () => {
+    expect(detectJunk({ path: "LICENSE", content: gpl3 })).toBe("license");
+    expect(detectJunk({ path: "third_party/COPYING", content: "Apache License" })).toBe("license");
+  });
+
+  it("never collapses a source file that merely contains a license header", () => {
+    expect(detectJunk({ path: "src/foo.ts", content: "/* GNU GENERAL PUBLIC LICENSE Version 3 */\nexport const x = 1;" })).toBeNull();
+  });
+
+  it("labels the license type from the first 30 lines, in priority order", () => {
+    expect(detectLicenseLabel("GNU AFFERO GENERAL PUBLIC LICENSE\nVersion 3")).toBe("AGPL");
+    expect(detectLicenseLabel("GNU LESSER GENERAL PUBLIC LICENSE\nVersion 3")).toBe("LGPL");
+    expect(detectLicenseLabel("GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007")).toBe("GPL v3");
+    expect(detectLicenseLabel("GNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991")).toBe("GPL v2");
+    expect(detectLicenseLabel("GNU GENERAL PUBLIC LICENSE")).toBe("GPL");
+    expect(detectLicenseLabel("Apache License\nVersion 2.0, January 2004")).toBe("Apache");
+    expect(detectLicenseLabel("MIT License\n\nPermission is hereby granted, free of charge")).toBe("MIT");
+    expect(detectLicenseLabel("Boost Software License - Version 1.0 - August 17th, 2003")).toBe("Boost");
+    expect(detectLicenseLabel("Mozilla Public License Version 2.0")).toBe("MPL");
+    expect(detectLicenseLabel("This is free and unencumbered software released into the public domain.\nSee <http://unlicense.org>")).toBe("Unlicense");
+    expect(detectLicenseLabel("ISC License\n\nPermission to use, copy, modify, and/or distribute")).toBe("ISC");
+    expect(detectLicenseLabel("Creative Commons Attribution 4.0 International")).toBe("Creative Commons");
+    expect(detectLicenseLabel("Redistribution and use in source and binary forms, with or without modification, are permitted")).toBe("BSD");
+    expect(detectLicenseLabel("all rights reserved")).toBe("license text");
+  });
+
+  it("only sniffs the first 30 lines", () => {
+    const body = "x\n".repeat(30) + "GNU GENERAL PUBLIC LICENSE\nVersion 3";
+    expect(detectLicenseLabel(body)).toBe("license text");
+  });
+
+  it("shows the license type in the file-tree label when known", () => {
+    expect(omittedLabel({ path: "LICENSE", lines: 674, size: 35823, content: "x", junkLabel: "GPL v3" }, "license")).toBe(
+      "674 lines omitted · GPL v3"
+    );
+    expect(omittedLabel({ path: "LICENSE", lines: 674, size: 35823, content: "x" }, "license")).toBe("674 lines omitted · license");
   });
 });
 

@@ -3,6 +3,7 @@ import {
   JunkKind,
   countLines,
   detectJunk,
+  detectLicenseLabel,
   dispositionOf,
   isLockfile,
   isNeverScanPath,
@@ -20,6 +21,7 @@ export interface RepoFile {
   autoExcluded: boolean; // excluded by default rules
   lines: number; // 0 when content is null
   junk: JunkKind | null; // why the file is collapsed / unreadable
+  junkLabel?: string; // dynamic placeholder reason (e.g. the detected license type)
   collapsed: boolean; // true → output shows a one-line placeholder instead of content
 }
 
@@ -81,10 +83,12 @@ export function finalizeRepoFile(
 ): RepoFile {
   const junk = detectJunk(raw);
   const lines = raw.content === null ? 0 : countLines(raw.content);
+  const junkLabel = junk === "license" && raw.content !== null ? detectLicenseLabel(raw.content) : undefined;
   return {
     ...raw,
     lines,
     junk,
+    ...(junkLabel ? { junkLabel } : {}),
     collapsed: junk !== null,
     included: true, // filters recompute this; junk stays included but collapsed (placeholder)
     autoExcluded: junk !== null,
