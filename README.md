@@ -6,8 +6,8 @@
 > **Crush an entire repository into a single, token-budgeted, AI-ready text file.** 
 > 100% local. Zero servers. Zero token waste.
 
-[![Live App](https://shields.io)](https://github.io)
-[![License: GPL v3](https://shields.io)](LICENSE)
+[![Live App](https://img.shields.io/badge/Live%20App-ra9n3.github.io-blue)](https://ra9n3.github.io/codecrusher/)
+[![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
 
 ---
 
