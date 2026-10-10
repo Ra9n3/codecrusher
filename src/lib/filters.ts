@@ -339,6 +339,20 @@ export function applyFilter(files: ClassifiedFile[], filter: FilterState, clearP
   });
 }
 
+/**
+ * All/None as a pure filter-lens change. `include` lights every category + layer;
+ * `!include` empties the categories axis only. Layers stay as the user set them so
+ * a later single-category pick (e.g. the API chip) brings its files back. Every
+ * other lens field is carried through untouched.
+ */
+export function bulkFilterState(current: FilterState, include: boolean): FilterState {
+  return {
+    ...current,
+    categories: include ? [...ALL_CATEGORIES] : [],
+    layers: include ? [...ALL_LAYERS] : current.layers,
+  };
+}
+
 /** Per-layer file counts and token estimates (full content only — collapsed junk costs ~one line). */
 export function layerStats(files: ClassifiedFile[], tokensOf: (f: ClassifiedFile) => number): Map<LayerId, { files: number; tokens: number }> {
   const map = new Map<LayerId, { files: number; tokens: number }>();

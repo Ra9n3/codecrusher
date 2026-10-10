@@ -14,6 +14,7 @@ import {
   FilterState,
   PRESETS,
   applyFilter,
+  bulkFilterState,
   classifyAll,
   crushContent,
   effectiveLayer,
@@ -232,14 +233,14 @@ export default function App() {
     );
   }, []);
 
-  // "All" keeps junk collapsed (placeholders, binaries included as placeholders); "None" drops everything.
-  const toggleAll = useCallback((include: boolean) => {
-    setFiles((prev) =>
-      prev
-        ? prev.map((f) => ({ ...f, included: include, pinned: true }))
-        : prev,
-    );
-  }, []);
+  // All/None move the filter lens itself so applyFilter recomputes every non-pinned
+  // file instantly; manual picks carry through because applyFilter skips pinned files.
+  const toggleAll = useCallback(
+    (include: boolean) => {
+      commit(bulkFilterState(filter, include));
+    },
+    [commit, filter],
+  );
 
   const reassignLayer = useCallback(
     (path: string, layer: LayerId | null) => {
