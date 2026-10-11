@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import OutputPanel from "../OutputPanel";
 
 afterEach(cleanup);
@@ -60,5 +60,36 @@ describe("OutputPanel preview honesty", () => {
     expect(screen.getByRole("button", { name: "Expand preview" }).getAttribute("title")).toBe(
       "Larger view of the preview (content cap unchanged)",
     );
+  });
+});
+
+describe("OutputPanel budget nudge", () => {
+  it("hides the nudge at exactly 50,000 tokens", () => {
+    renderPanel({ output: make(200_000), budget: null, onBudget: () => {} });
+    expect(screen.queryByTestId("budget-nudge")).toBeNull();
+  });
+
+  it("hides the nudge under the threshold", () => {
+    renderPanel({ output: make(199_996), budget: null, onBudget: () => {} });
+    expect(screen.queryByTestId("budget-nudge")).toBeNull();
+  });
+
+  it("shows the nudge at 50,001 tokens", () => {
+    renderPanel({ output: make(200_001), budget: null, onBudget: () => {} });
+    const nudge = screen.getByTestId("budget-nudge");
+    expect(nudge.textContent).toContain("This crush is ~50,001 tokens");
+    expect(nudge.textContent).toContain("set a budget to auto-evict the heaviest files?");
+  });
+
+  it("hides the nudge when a budget is already active", () => {
+    renderPanel({ output: make(200_001), budget: 100_000, onBudget: () => {} });
+    expect(screen.queryByTestId("budget-nudge")).toBeNull();
+  });
+
+  it("sets a 50k budget from the nudge button", () => {
+    const onBudget = vi.fn();
+    renderPanel({ output: make(200_001), budget: null, onBudget });
+    fireEvent.click(screen.getByTestId("budget-nudge-50k"));
+    expect(onBudget).toHaveBeenCalledWith(50_000);
   });
 });

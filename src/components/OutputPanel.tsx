@@ -25,6 +25,9 @@ const CONTEXTS = [
 /** Hard cap on characters rendered in the on-screen preview (display only). */
 const PREVIEW_CHAR_LIMIT = 60_000;
 
+/** Suggest a budget once a crush exceeds this many estimated tokens. */
+const BUDGET_NUDGE_TOKEN_THRESHOLD = 50_000;
+
 export default function OutputPanel({
   output,
   rootName,
@@ -49,6 +52,7 @@ export default function OutputPanel({
     [output, isPreviewTruncated]
   );
   const isPreviewTooShort = output.length < 5000;
+  const showBudgetNudge = tokens > BUDGET_NUDGE_TOKEN_THRESHOLD && budget === null;
 
   const copy = async () => {
     await navigator.clipboard.writeText(output);
@@ -98,6 +102,23 @@ export default function OutputPanel({
           protectedOverflow={protectedOverflow}
           onBudget={onBudget}
         />
+      )}
+
+      {showBudgetNudge && (
+        <div
+          data-testid="budget-nudge"
+          className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 bg-amber-400/5 px-4 py-2.5 text-[11px] text-amber-200/90"
+        >
+          <span>This crush is ~{tokens.toLocaleString("en-US")} tokens — set a budget to auto-evict the heaviest files?</span>
+          <button
+            type="button"
+            data-testid="budget-nudge-50k"
+            onClick={() => onBudget?.(50_000)}
+            className="rounded-md border border-amber-400/50 bg-amber-400/10 px-2.5 py-1 font-semibold text-amber-100 transition hover:border-amber-300 hover:bg-amber-400/20"
+          >
+            Set 50k budget
+          </button>
+        </div>
       )}
 
       {/* Context fit */}
