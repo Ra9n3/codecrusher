@@ -22,6 +22,9 @@ const CONTEXTS = [
   { name: "Gemini", limit: 1_000_000 },
 ];
 
+/** Hard cap on characters rendered in the on-screen preview (display only). */
+const PREVIEW_CHAR_LIMIT = 60_000;
+
 export default function OutputPanel({
   output,
   rootName,
@@ -37,9 +40,13 @@ export default function OutputPanel({
   const [copied, setCopied] = useState(false);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const tokens = useMemo(() => estimateTokens(output), [output]);
+  const isPreviewTruncated = output.length > PREVIEW_CHAR_LIMIT;
   const preview = useMemo(
-    () => (output.length > 60_000 ? output.slice(0, 60_000) + "\n\n… (preview truncated — full content in copy/download)" : output),
-    [output]
+    () =>
+      isPreviewTruncated
+        ? output.slice(0, PREVIEW_CHAR_LIMIT) + "\n\n… — display only; nothing is missing from Copy/Download."
+        : output,
+    [output, isPreviewTruncated]
   );
   const isPreviewTooShort = output.length < 5000;
 
@@ -149,6 +156,7 @@ export default function OutputPanel({
             type="button"
             onClick={() => setIsPreviewExpanded(!isPreviewExpanded)}
             disabled={isPreviewTooShort}
+            title="Larger view of the preview (content cap unchanged)"
             className={`text-[11px] font-medium transition-colors ${
               isPreviewTooShort
                 ? "text-zinc-600 cursor-not-allowed"
@@ -158,6 +166,17 @@ export default function OutputPanel({
             {isPreviewExpanded ? "Collapse preview" : "Expand preview"}
           </button>
         </div>
+        {isPreviewTruncated && (
+          <div
+            data-testid="preview-truncated-banner"
+            className="mb-2 rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90"
+          >
+            Preview shows the first{" "}
+            <span data-testid="preview-shown-chars">{PREVIEW_CHAR_LIMIT.toLocaleString("en-US")}</span> of{" "}
+            <span data-testid="preview-total-chars">{output.length.toLocaleString("en-US")}</span> characters —
+            display only. Copy and Download always contain the full crush.
+          </div>
+        )}
         <div className={`min-h-0 flex-1 overflow-auto ${!isPreviewExpanded ? "max-h-[350px]" : ""}`}>
           <pre className="whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-zinc-400">
             {preview}
