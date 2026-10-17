@@ -33,10 +33,12 @@ import {
   withLayersParam,
 } from "./lib/layers";
 import {
-  PLACEHOLDER_TOKENS,
+  OMITTED_NOTE_TOKENS,
+  candidateResidualTokens,
   centralityScores,
   planEviction,
 } from "./lib/budget";
+import { JUNK_LABEL } from "./lib/junk";
 import {
   OutputMeta,
   RepoFile,
@@ -371,17 +373,58 @@ export default function App() {
         tokens: blockTokens.get(f.path) ?? 0,
         junk: f.junk,
         content: f.content,
+        lines: f.lines,
+        size: f.size,
       }));
-    const placeholders = files.filter(
+    const placeholderFiles = files.filter(
       (f) => f.included && (f.collapsed || f.content === null),
-    ).length;
-    const treeLines = candidates.length + placeholders + skippedDirs.length;
+    );
+    const placeholderTokens = placeholderFiles.reduce(
+      (sum, f) =>
+        sum +
+        candidateResidualTokens(
+          {
+            path: f.path,
+            tokens: 0,
+            junk: f.junk,
+            content: f.content,
+            lines: f.lines,
+            size: f.size,
+            junkLabel: f.junkLabel,
+          },
+          f.junkLabel ?? JUNK_LABEL[f.junk ?? (f.content === null ? "binary" : "build-output")],
+        ),
+      0,
+    );
+    const treeDirs = new Set<string>();
+    for (const f of files) {
+      if (!f.included) continue;
+      const parts = f.path.split("/");
+      for (let i = 1; i < parts.length; i++) {
+        treeDirs.add(parts.slice(0, i).join("/"));
+      }
+    }
+    const treeLines =
+      candidates.length +
+      placeholderFiles.length +
+      skippedDirs.length +
+      treeDirs.size;
+    const skippedDirsTokens = skippedDirs.length > 0 ? estimateTokens(skippedDirs.join(", ")) : 0;
+    const intentExtraTokens = Math.max(0, estimateTokens(filter.intent) - 35);
     const baseTokens =
       BASE_HEADER_TOKENS +
       treeLines * TREE_LINE_TOKENS +
-      placeholders * PLACEHOLDER_TOKENS;
-    return planEviction({ candidates, baseTokens, budget, centrality });
-  }, [files, budget, blockTokens, centrality, skippedDirs.length]);
+      placeholderTokens +
+      skippedDirsTokens +
+      intentExtraTokens;
+    return planEviction({
+      candidates,
+      baseTokens,
+      budget,
+      centrality,
+      firstEvictionOverhead: placeholderFiles.length === 0 ? OMITTED_NOTE_TOKENS : 0,
+    });
+  }, [files, budget, blockTokens, centrality, skippedDirs, filter.intent]);
 
   const output = useMemo(() => {
     if (!files) return "";

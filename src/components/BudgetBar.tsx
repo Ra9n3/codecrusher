@@ -99,7 +99,12 @@ export default function BudgetBar({ budget, used, evictedCount, protectedOverflo
                 {evictedCount} file{evictedCount === 1 ? "" : "s"} auto-evicted (placeholders left in place) ·{" "}
               </span>
             )}
-            {protectedOverflow && <span className="text-red-300">README / entry points alone exceed the budget · </span>}
+            {protectedOverflow && (
+              <span className="text-red-300">
+                README / entry points alone exceed the budget — can't be evicted. Try: raise the budget · Signatures only
+                depth · narrower selection ·{" "}
+              </span>
+            )}
             estimate ≈ characters ÷ 4
           </p>
         </div>

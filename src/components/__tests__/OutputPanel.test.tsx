@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import OutputPanel from "../OutputPanel";
+import { HeroTerminal } from "../HeroVisuals";
 
 afterEach(cleanup);
 
@@ -20,6 +21,26 @@ function renderPanel(overrides: Partial<Props> = {}) {
     />,
   );
 }
+
+describe("OutputPanel context labels", () => {
+  it("labels the GPT context without a model version suffix", () => {
+    renderPanel();
+    expect(screen.getByText(/GPT/).textContent).toContain("GPT");
+    expect(screen.queryByText(/GPT-5/)).toBeNull();
+  });
+});
+
+describe("HeroTerminal illustrative copy", () => {
+  it("describes skipping dependency directories without inventing a file count or token total", () => {
+    const { container } = render(<HeroTerminal />);
+    const text = container.textContent ?? "";
+    expect(text).toContain("Skipping node_modules/ and .git/");
+    expect(text).toContain("Collapsing package-lock.json to a placeholder");
+    expect(text).toContain("Output ready — estimated tokens shown");
+    expect(text).not.toMatch(/[\d,]+ files/);
+    expect(text).not.toMatch(/[\d,]+ tokens/);
+  });
+});
 
 describe("OutputPanel preview honesty", () => {
   it("shows no truncation banner at 59,999 characters", () => {
@@ -64,32 +85,34 @@ describe("OutputPanel preview honesty", () => {
 });
 
 describe("OutputPanel budget nudge", () => {
-  it("hides the nudge at exactly 50,000 tokens", () => {
-    renderPanel({ output: make(200_000), budget: null, onBudget: () => {} });
+  it("hides the nudge at exactly 30,000 tokens", () => {
+    renderPanel({ output: make(120_000), budget: null, onBudget: () => {} });
     expect(screen.queryByTestId("budget-nudge")).toBeNull();
   });
 
   it("hides the nudge under the threshold", () => {
-    renderPanel({ output: make(199_996), budget: null, onBudget: () => {} });
+    renderPanel({ output: make(119_996), budget: null, onBudget: () => {} });
     expect(screen.queryByTestId("budget-nudge")).toBeNull();
   });
 
-  it("shows the nudge at 50,001 tokens", () => {
-    renderPanel({ output: make(200_001), budget: null, onBudget: () => {} });
+  it("shows the nudge at 30,001 tokens", () => {
+    renderPanel({ output: make(120_001), budget: null, onBudget: () => {} });
     const nudge = screen.getByTestId("budget-nudge");
-    expect(nudge.textContent).toContain("This crush is ~50,001 tokens");
+    expect(nudge.textContent).toContain("This crush is ~30,001 tokens");
     expect(nudge.textContent).toContain("set a budget to auto-evict the heaviest files?");
   });
 
   it("hides the nudge when a budget is already active", () => {
-    renderPanel({ output: make(200_001), budget: 100_000, onBudget: () => {} });
+    renderPanel({ output: make(120_001), budget: 100_000, onBudget: () => {} });
     expect(screen.queryByTestId("budget-nudge")).toBeNull();
   });
 
-  it("sets a 50k budget from the nudge button", () => {
+  it("sets the smallest expressible budget from the nudge button", () => {
     const onBudget = vi.fn();
-    renderPanel({ output: make(200_001), budget: null, onBudget });
-    fireEvent.click(screen.getByTestId("budget-nudge-50k"));
-    expect(onBudget).toHaveBeenCalledWith(50_000);
+    renderPanel({ output: make(120_001), budget: null, onBudget });
+    fireEvent.click(screen.getByTestId("budget-nudge-30k"));
+    const btn = screen.getByTestId("budget-nudge-30k");
+    expect(btn.textContent).toBe("Set 30k budget");
+    expect(onBudget).toHaveBeenCalledWith(30_000);
   });
 });

@@ -19,13 +19,13 @@ export function HeroTerminal() {
             </div>
           </div>
           <div className="mb-1.5 text-zinc-400">
-            ↳ Evicting node_modules (12,400 files)
+            ↳ Skipping node_modules/ and .git/
           </div>
           <div className="mb-1.5 text-zinc-400">
-            ↳ Collapsing package-lock.json (placeholder)
+            ↳ Collapsing package-lock.json to a placeholder
           </div>
           <div className="mb-1.5 text-amber-400">
-            ✓ Crushed to 1 file (42,000 tokens)
+            ✓ Output ready — estimated tokens shown
           </div>
           <div className="mt-2 flex items-center">
             <span className="text-zinc-500 mr-2">➜</span>

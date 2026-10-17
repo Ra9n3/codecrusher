@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { estimateTokens, formatBytes, formatCount } from "../lib/processor";
+import { BUDGET_PRESETS, formatTokens } from "../lib/budget";
 import BudgetBar from "./BudgetBar";
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
 }
 
 const CONTEXTS = [
-  { name: "GPT-5", limit: 400_000 },
+  { name: "GPT", limit: 400_000 },
   { name: "Claude", limit: 200_000 },
   { name: "Gemini", limit: 1_000_000 },
 ];
@@ -26,7 +27,8 @@ const CONTEXTS = [
 const PREVIEW_CHAR_LIMIT = 60_000;
 
 /** Suggest a budget once a crush exceeds this many estimated tokens. */
-const BUDGET_NUDGE_TOKEN_THRESHOLD = 50_000;
+/** Suggest a budget once a crush exceeds the smallest expressible budget. */
+const BUDGET_NUDGE_TOKEN_THRESHOLD = BUDGET_PRESETS[0];
 
 export default function OutputPanel({
   output,
@@ -112,11 +114,11 @@ export default function OutputPanel({
           <span>This crush is ~{tokens.toLocaleString("en-US")} tokens — set a budget to auto-evict the heaviest files?</span>
           <button
             type="button"
-            data-testid="budget-nudge-50k"
-            onClick={() => onBudget?.(50_000)}
+            data-testid="budget-nudge-30k"
+            onClick={() => onBudget?.(BUDGET_NUDGE_TOKEN_THRESHOLD)}
             className="rounded-md border border-amber-400/50 bg-amber-400/10 px-2.5 py-1 font-semibold text-amber-100 transition hover:border-amber-300 hover:bg-amber-400/20"
           >
-            Set 50k budget
+            Set {formatTokens(BUDGET_PRESETS[0])} budget
           </button>
         </div>
       )}

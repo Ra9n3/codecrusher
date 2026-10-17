@@ -6,13 +6,16 @@
  * of the app uses. Stated in the UI next to the indicator.
  */
 
-import type { JunkKind } from "./junk";
+import { type JunkKind, placeholderText } from "./junk";
 
-export const BUDGET_PRESETS = [50_000, 100_000, 200_000, 500_000] as const;
+export const BUDGET_PRESETS = [30_000, 50_000, 100_000, 200_000, 500_000] as const;
 export const BUDGET_EVICTED_REASON = "token budget";
 
 /** Approximate size of a one-line placeholder block. */
 export const PLACEHOLDER_TOKENS = 40;
+
+/** Tokens added to the header when omitted count transitions from 0 to >= 1. */
+export const OMITTED_NOTE_TOKENS = 64;
 
 export interface BudgetCandidate {
   path: string;
@@ -21,6 +24,32 @@ export interface BudgetCandidate {
   junk: JunkKind | null;
   /** Expanded junk (lockfile the user opted back in, minified bundle …) is evicted first. */
   content: string | null;
+  /** Optional line count and byte size for exact placeholder + tree-note residual accounting. */
+  lines?: number;
+  size?: number;
+  junkLabel?: string;
+}
+
+const PLACEHOLDER_RULE_LEN = 64;
+
+/**
+ * Estimated token residual left behind when a candidate file is omitted as a placeholder:
+ * its one-line placeholder block plus the `  (omitted: ...)` annotation added to its directory-tree line.
+ * Falls back to `PLACEHOLDER_TOKENS` when caller omits `lines`.
+ */
+export function candidateResidualTokens(c: BudgetCandidate, reason: string = BUDGET_EVICTED_REASON): number {
+  if (c.lines === undefined) return PLACEHOLDER_TOKENS;
+  const label = placeholderText(
+    { path: c.path, lines: c.lines, size: c.size ?? c.content?.length ?? 0, content: c.content, junkLabel: c.junkLabel },
+    reason,
+  );
+  // Matches renderPlaceholderBlock: [THIN, `FILE: ${path}  [${label}]`, THIN, ""].join("\n") + "\n" separator
+  const blockChars = PLACEHOLDER_RULE_LEN + 1 + 6 + c.path.length + 3 + label.length + 2 + PLACEHOLDER_RULE_LEN + 2;
+  // Matches tree Entry note: `  (omitted: ${reason}, ${lines} lines)`
+  const noteText =
+    c.content !== null && c.lines > 0 ? `omitted: ${reason}, ${c.lines.toLocaleString("en-US")} lines` : `omitted: ${reason}`;
+  const noteChars = 3 + noteText.length + 1;
+  return Math.ceil((blockChars + noteChars) / 4);
 }
 
 export interface EvictionPlan {
@@ -114,6 +143,8 @@ export interface PlanInput {
   centrality: Map<string, number>;
   /** Safety margin (fraction) so the final measured output lands under budget. */
   margin?: number;
+  /** Extra header tokens added when the first candidate is evicted (when no placeholders existed initially). */
+  firstEvictionOverhead?: number;
 }
 
 /**
@@ -160,11 +191,23 @@ export function planEviction(input: PlanInput): EvictionPlan {
 
   for (const c of evictionOrder(input.candidates, input.centrality)) {
     if (after <= target) break;
+    const firstOverhead = evicted.length === 0 ? (input.firstEvictionOverhead ?? 0) : 0;
+    const residual = candidateResidualTokens(c, BUDGET_EVICTED_REASON) + firstOverhead;
+    if (c.tokens <= residual) continue;
     evicted.push(c.path);
     evictedMap.set(c.path, BUDGET_EVICTED_REASON);
-    after -= c.tokens - PLACEHOLDER_TOKENS;
+    after -= c.tokens - residual;
   }
-  return { evicted, evictedMap, before, after, protectedOverflow: after > target };
+  const protectedTokens = input.candidates
+    .filter((c) => isProtectedPath(c.path))
+    .reduce((s, c) => s + c.tokens, 0);
+  return {
+    evicted,
+    evictedMap,
+    before,
+    after,
+    protectedOverflow: after > input.budget && protectedTokens > input.budget,
+  };
 }
 
 export function formatTokens(n: number): string {
