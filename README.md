@@ -2,7 +2,8 @@
 
 Turn any codebase into one AI-ready text file — on budget, on structure, 100% in your browser.
 
-[🚀 Open the Live App] (https://ra9n3.github.io/codecrusher/) · [🐛 Report a Bug](https://github.com/Ra9n3/codecrusher/issues) · [📦 Releases](https://github.com/Ra9n3/codecrusher/releases)
+[🚀 Open the Live App](https://ra9n3.github.io/codecrusher/) · [🐛 Report a Bug](https://github.com/Ra9n3/codecrusher/issues) · [📦 Releases](https://github.com/Ra9n3/codecrusher/releases)
+
 ![Screenshot of Code Crusher](./screenshot-Layer.png)
 ![Screenshot of Code Crusher](./screenshot-crush.png)
 
@@ -46,7 +47,7 @@ Protected files are never evicted silently. You always see exactly what was cut,
 
 ## 🚀 How to Use It
 
-1. Open the Live Web App.
+1. Open the [Live Web App](https://ra9n3.github.io/codecrusher/).
 2. Drag & drop your project folder, or upload a `.zip` export straight from GitHub.
 3. Pick a Crush Profile or toggle layers, choose full source or signatures only or set your Token Budget.
 4. Copy or Download the `.txt`.
