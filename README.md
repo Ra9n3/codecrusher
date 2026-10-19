@@ -24,7 +24,7 @@ Code Crusher solves this by letting you surgically slice your codebase, track a 
 - 📏 **Honest Accounting:** Placeholder and tree overhead are counted for real. No silent over-budget drift.
 
 ### What a placeholder looks like:
-> `// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens – evicted to fit budget (least-central, largest)`
+> *// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens – evicted to fit budget (least-central, largest)*
 
 🎯 How Eviction Works
 When your repo exceeds the budget, the planner evicts in three tiers:
@@ -55,6 +55,4 @@ Commit your changes (git commit -m 'Add some AmazingFeature')
 Push to the branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 📄 License
-Distributed under the AGPL-3.0 License. See LICENSE for more information.<img width="1887" height="868" alt="screenshot-crush (2)" src="https://github.com/user-attachments/assets/41ba49c3-3506-4ad3-8164-3d969d4aeffd" />
-
-<img width="1900" height="872" alt="screenshot-crush" src="https://github.com/user-attachments/assets/e9d726f2-3bf0-4867-914c-631ae5152442" />
+Distributed under the AGPL-3.0 License. See LICENSE for more information.<img />
