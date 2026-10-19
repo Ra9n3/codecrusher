@@ -56,5 +56,5 @@ Push to the branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 📄 License
 Distributed under the AGPL-3.0 License. See LICENSE for more information.<img width="1887" height="868" alt="screenshot-crush (2)" src="https://github.com/user-attachments/assets/41ba49c3-3506-4ad3-8164-3d969d4aeffd" />
-<img width="1900" height="872" alt="screenshot-crush" src="https://github.com/user-attachments/assets/4872b3e4-6d82-4897-bc2e-5351c51a0686" />
+
 <img width="1900" height="872" alt="screenshot-crush" src="https://github.com/user-attachments/assets/e9d726f2-3bf0-4867-914c-631ae5152442" />
