@@ -46,8 +46,8 @@ Protected files are never evicted silently. You always see exactly what was cut,
 
 1. Open the Live Web App.
 2. Drag & drop your project folder, or upload a `.zip` export straight from GitHub.
-3. Pick a Crush Profile or toggle layers, set your Token Budget, and choose full source or signatures-only.
-4. Hit **Crush** — then Copy or Download the `.txt` straight into your AI prompt.
+3. Pick a Crush Profile or toggle layers, choose full source or signatures only or set your Token Budget.
+4. Copy or Download the `.txt`.
 
 ## 🧑‍💻 Technical Architecture
 
