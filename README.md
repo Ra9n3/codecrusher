@@ -3,6 +3,8 @@
 Turn any codebase into one AI-ready text file — on budget, on structure, 100% in your browser.
 
 [🚀 Open the Live App] (https://ra9n3.github.io/codecrusher/) · [🐛 Report a Bug](https://github.com/Ra9n3/codecrusher/issues) · [📦 Releases](https://github.com/Ra9n3/codecrusher/releases)
+![Screenshot of Code Crusher](./screenshots/screenshot-Layer.png)
+![Screenshot of Code Crusher](./screenshots/screenshot-crush.png)
 
 ## Why Code Crusher?
 
