@@ -1,31 +1,3 @@
-# 🔨 Code Crusher
-
-Turn any codebase into one AI-ready text file — on budget, on structure, 100% in your browser.
-
-[🚀 Open the Live App](https://ra9n3.github.io/codecrusher/) · [🐛 Report a Bug](https://github.com/Ra9n3/codecrusher/issues) · [📦 Releases](https://github.com/Ra9n3/codecrusher/releases)
-
-## Why Code Crusher?
-Feeding an entire repository into an LLM usually ends in two massive headaches:
-1. **Context Bloat:** You blow past context windows paying the AI to parse unneeded dependencies, massive `package-lock.json` files, and binaries.
-2. **Blind Truncation:** Existing tools either dump everything or vaporize files completely, leaving the AI entirely blind to your repository's layout.
-
-Code Crusher solves this by letting you surgically slice your codebase, track a strict token budget, and auto-evict heavy, low-priority files — while the AI still sees your exact project structure.
-
-## ✨ Features
-- 🔒 **100% Client-Side Privacy:** Unzipping, parsing, and token estimation run entirely in your browser memory. Your code never touches a backend.
-- 📉 **Strict Token Budgeting:** Presets from 30k to 500k, a live BudgetBar, and a planner that evicts until you fit (with a built-in safety margin).
-- 🧭 **No "Ghost Files":** Evicted files leave a precise one-line placeholder. The LLM still understands your exact file tree and paths.
-- 🎛️ **Architectural Slicing:** Every file belongs to exactly one of 12 layers. Grab just UI, business logic, or APIs while stripping test suites and heavy configs.
-- 🧪 **Crush Profiles:** One-click presets for every mission: *How it works, UI & design, API & data, Docs only, Tests, Setup*.
-- 📊 **Model-Fit Meter:** See your crush as a live percentage of GPT, Claude, and Gemini context windows before you paste anything.
-- 🛡️ **Protected Files:** Your `README`, `index.*`, `main.*`, and `app.*` are never silently evicted.
-- ✂️ **Signatures-Only Mode:** Strip function bodies, keeping only the API surface the AI actually needs.
-- 🧠 **Smart Eviction Guard:** Never evicts a file whose placeholder would cost more tokens than the file itself saves. Every eviction is net-positive.
-- 📏 **Honest Accounting:** Placeholder and tree overhead are counted for real. No silent over-budget drift.
-
-### What a placeholder looks like:
-> *// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens – evicted to fit budget (least-central, largest)*
-
 🎯 How Eviction Works
 When your repo exceeds the budget, the planner evicts in three tiers:
 Junk first: Lockfiles, binaries, generated code.
@@ -55,4 +27,4 @@ Commit your changes (git commit -m 'Add some AmazingFeature')
 Push to the branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 📄 License
-Distributed under the AGPL-3.0 License. See LICENSE for more information.<img />
+Distributed under the AGPL-3.0 License. See LICENSE for more information.
