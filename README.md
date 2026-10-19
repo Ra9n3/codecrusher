@@ -1,90 +1,61 @@
-<img width="1892" height="808" alt="codecrusher1" src="https://github.com/user-attachments/assets/c8a54f11-a83d-4770-9a0d-d7c0be541561" />
-<img width="1885" height="822" alt="codecrusher2" src="https://github.com/user-attachments/assets/358772e3-3fd7-4d15-baf4-4936621fc872" />
+# 🔨 Code Crusher
 
-# ⚡ Code Crusher
+Turn any codebase into one AI-ready text file — on budget, on structure, 100% in your browser.
 
-> **Crush an entire repository into a single, token-budgeted, AI-ready text file.** 
-> 100% local. Zero servers. Zero token waste.
+[🚀 Open the Live App](https://ra9n3.github.io/codecrusher/) · [🐛 Report a Bug](https://github.com/Ra9n3/codecrusher/issues) · [📦 Releases](https://github.com/Ra9n3/codecrusher/releases)
 
-[![Live App](https://img.shields.io/badge/Live%20App-ra9n3.github.io-blue)](https://ra9n3.github.io/codecrusher/)
-[![License: GPL v3](https://img.shields.io/badge/license-GPL%20v3-blue)](LICENSE)
-
----
-
-## 🤔 Why Code Crusher?
-
-Feeding an entire repository into Claude, ChatGPT, or local LLMs usually results in two massive headaches:
-1. **Context Bloat:** You blow past context windows or pay an arm and a leg for the AI to parse unneeded dependencies, massive `package-lock.json` files, and binaries.
+## Why Code Crusher?
+Feeding an entire repository into an LLM usually ends in two massive headaches:
+1. **Context Bloat:** You blow past context windows paying the AI to parse unneeded dependencies, massive `package-lock.json` files, and binaries.
 2. **Blind Truncation:** Existing tools either dump everything or vaporize files completely, leaving the AI entirely blind to your repository's layout.
 
-**Code Crusher** solves this by letting you surgically slice your codebase, track your token budget, and auto-evict heavy, low-priority files while maintaining project structure.
-
----
+Code Crusher solves this by letting you surgically slice your codebase, track a strict token budget, and auto-evict heavy, low-priority files — while the AI still sees your exact project structure.
 
 ## ✨ Features
+- 🔒 **100% Client-Side Privacy:** Unzipping, parsing, and token estimation run entirely in your browser memory. Your code never touches a backend.
+- 📉 **Strict Token Budgeting:** Presets from 30k to 500k, a live BudgetBar, and a planner that evicts until you fit (with a built-in safety margin).
+- 🧭 **No "Ghost Files":** Evicted files leave a precise one-line placeholder. The LLM still understands your exact file tree and paths.
+- 🎛️ **Architectural Slicing:** Every file belongs to exactly one of 12 layers. Grab just UI, business logic, or APIs while stripping test suites and heavy configs.
+- 🧪 **Crush Profiles:** One-click presets for every mission: *How it works, UI & design, API & data, Docs only, Tests, Setup*.
+- 📊 **Model-Fit Meter:** See your crush as a live percentage of GPT, Claude, and Gemini context windows before you paste anything.
+- 🛡️ **Protected Files:** Your `README`, `index.*`, `main.*`, and `app.*` are never silently evicted.
+- ✂️ **Signatures-Only Mode:** Strip function bodies, keeping only the API surface the AI actually needs.
+- 🧠 **Smart Eviction Guard:** Never evicts a file whose placeholder would cost more tokens than the file itself saves. Every eviction is net-positive.
+- 📏 **Honest Accounting:** Placeholder and tree overhead are counted for real. No silent over-budget drift.
 
-* 🔒 **100% Client-Side Privacy:** Your code never touches a backend. Unzipping, parsing, and token estimation run entirely in your browser memory.
-* 📉 **Smart Token Budgeting:** Set a strict target token limit. The app applies a centrality scoring algorithm to automatically evict the heaviest, least essential files until your codebase fits perfectly.
-* 🧭 **No "Ghost Files" (Placeholders):** When a file or binary is dropped to save budget, Code Crusher leaves a precise one-line comment placeholder. The LLM still understands your exact file tree and paths without choking on the raw content.
-* 🎛️ **Architectural Slicing:** Isolate what matters. Instantly filter your codebase across **12 architectural layers**—grab just the core business logic or APIs while stripping away test suites and heavy configurations.
+### What a placeholder looks like:
+```typescript
+// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens — evicted to fit budget (least-central, largest)
 
----
-
-## 🛠️ Built With
-
-Code Crusher is an ultra-fast, modern web app built on a lean frontend stack:
-* **React 19** – Component-driven architecture
-* **Vite 7** – Lightning-fast build pipeline
-* **Tailwind CSS v4** – Modern, high-performance styling
-* **Vitest** – Robust local unit testing pipeline
-
----
-
-## 🚀 How to Use It
-
-1. Open the [Live Web App]( https://ra9n3.github.io/codecrusher/).
-2. Drag and drop your project folder, or upload a `.zip` export directly from GitHub.
-3. Select your target **Token Budget** and toggle architectural **Layers**.
-4. Click **Crush** and copy the optimized text file directly into your AI prompt!
-
----
-
-## 🧑‍💻 Technical Architecture Overview
-
-The pipeline handles code transformation through a purely client-side lifecyle:
-
-[ Repo Folder / Zip ] ──> [ Client-Side Unzipper ]
-│
-▼
-[ Layer Classifier Engine ]
-│
-▼
-[ Centrality Score Evaluator ]
-│
-▼
-[ budget.ts Eviction Planner ] ──> (Replaces heavy files with placeholders)
-│
-▼
-[ Consolidated .txt ]
-
-* **`src/lib/processor.ts`:** Manages client-side file stream reading and builds the initial flat context map.
-* **`src/lib/budget.ts`:** Calculates token weights and executes the file eviction logic when the project exceeds user limits.
-* **`src/lib/filters.ts` / `layers.ts`:** Maps individual code trees into queryable architectural slices.
-
----
-
-## 🤝 Contributing & Feedback
-
-This tool is **100% free, open-source, and created to give back to the developer community**. If you want to see a new eviction strategy, better framework classification, or find a bug:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-Distributed under the gpl v3 License. See `LICENSE` for more information.
+🎯 How Eviction Works
+When your repo exceeds the budget, the planner evicts in three tiers:
+Junk first: Lockfiles, binaries, generated code.
+Oversized next: Files far above the median size get the boot.
+Least-central last: Files with the fewest connections to the rest of the codebase, biggest first.
+Protected files are never evicted silently. You always see exactly what was cut, and why.
+🚀 How to Use It
+Open the Live Web App.
+Drag & drop your project folder, or upload a .zip export straight from GitHub.
+Pick a Crush Profile or toggle layers, set your Token Budget, and choose full source or signatures-only.
+Hit Crush — then Copy or Download the .txt straight into your AI prompt.
+🧑‍💻 Technical Architecture
+The pipeline handles code transformation through a purely client-side lifecycle:
+Client-Side Unzipper / File Reader: Parses the local directory or zip file.
+Layer Classifier Engine (layers.ts): Maps individual code trees into queryable architectural slices.
+Centrality Score Evaluator: Analyzes import dependencies to determine architectural importance.
+Eviction Planner (budget.ts): Calculates token weights and executes the file eviction logic, replacing heavy files with placeholders.
+Consolidated Output: Generates the final, budget-compliant .txt file.
+⚠️ Honest Limitations
+Token counts are fast estimates (~4 characters ≈ 1 token), not an exact tokenizer. Good enough for budgeting, not for invoicing.
+Repos that are already tiny or mostly one huge generated file have less to evict. The tool will explicitly tell you when the budget is impossible.
+🤝 Contributing & Feedback
+This tool is 100% free, open-source, and created to give back to the developer community. If you want a new eviction strategy, better framework classification, or found a bug:
+Fork the repository
+Create your feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add some AmazingFeature')
+Push to the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+📄 License
+Distributed under the AGPL-3.0 License. See LICENSE for more information.<img width="1887" height="868" alt="screenshot-crush (2)" src="https://github.com/user-attachments/assets/41ba49c3-3506-4ad3-8164-3d969d4aeffd" />
+<img width="1900" height="872" alt="screenshot-crush" src="https://github.com/user-attachments/assets/4872b3e4-6d82-4897-bc2e-5351c51a0686" />
+<img width="1900" height="872" alt="screenshot-crush" src="https://github.com/user-attachments/assets/e9d726f2-3bf0-4867-914c-631ae5152442" />
