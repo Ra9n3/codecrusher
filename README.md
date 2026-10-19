@@ -23,11 +23,8 @@ Code Crusher solves this by letting you surgically slice your codebase, track a 
 - 🧠 **Smart Eviction Guard:** Never evicts a file whose placeholder would cost more tokens than the file itself saves. Every eviction is net-positive.
 - 📏 **Honest Accounting:** Placeholder and tree overhead are counted for real. No silent over-budget drift.
 
-
-
-```markdown
 ### What a placeholder looks like:
-> `// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens — evicted to fit budget (least-central, largest)`
+> `// [EVICTED] src/utils/deepDependencyMap.ts — 4,120 tokens – evicted to fit budget (least-central, largest)`
 
 🎯 How Eviction Works
 When your repo exceeds the budget, the planner evicts in three tiers:
