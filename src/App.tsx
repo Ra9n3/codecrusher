@@ -239,7 +239,7 @@ export default function App() {
   // file instantly; manual picks carry through because applyFilter skips pinned files.
   const toggleAll = useCallback(
     (include: boolean) => {
-      commit(bulkFilterState(filter, include));
+      commit(bulkFilterState(filter, include), true);
     },
     [commit, filter],
   );
