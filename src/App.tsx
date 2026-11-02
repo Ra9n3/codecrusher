@@ -74,51 +74,6 @@ const STEPS = [
   },
 ];
 
-function Logo({ className = "h-9 w-9" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect width="32" height="32" rx="8" fill="url(#crush)" />
-      <path
-        d="M7 8h18v3.2c0 .5-.4.8-.9.8H7.9c-.5 0-.9-.3-.9-.8V8z"
-        fill="#1c1917"
-      />
-      <path d="M10 13.2h12l-1.2 3.2H11.2L10 13.2z" fill="#fff7ed" />
-      <rect x="8" y="18" width="16" height="2" rx="0.4" fill="#fbbf24" />
-      <rect
-        x="9.5"
-        y="21.2"
-        width="13"
-        height="1.4"
-        rx="0.3"
-        fill="#fdba74"
-        opacity="0.85"
-      />
-      <rect
-        x="11"
-        y="23.6"
-        width="10"
-        height="1.1"
-        rx="0.3"
-        fill="#fff"
-        opacity="0.9"
-      />
-      <defs>
-        <linearGradient
-          id="crush"
-          x1="4"
-          y1="2"
-          x2="28"
-          y2="30"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#fbbf24" />
-          <stop offset="1" stopColor="#ea580c" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
 export default function App() {
   const [files, setFiles] = useState<ClassifiedFile[] | null>(null);
   const [rootName, setRootName] = useState("repository");
@@ -489,9 +444,8 @@ export default function App() {
           <button
             type="button"
             onClick={() => setFiles(null)}
-            className="flex items-center gap-2.5 text-left"
+            className="flex items-center text-left"
           >
-            <Logo />
             <span className="text-lg font-black tracking-tight">
               CODE<span className="text-amber-400">CRUSHER</span>
             </span>
