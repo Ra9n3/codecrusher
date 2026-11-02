@@ -85,7 +85,7 @@ export default function FilePanel({ files, skippedDirs = [], evicted, onToggle, 
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter by path…"
+          placeholder="Search files…"
           className="mt-3 w-full rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-amber-500/60"
         />
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-500">
